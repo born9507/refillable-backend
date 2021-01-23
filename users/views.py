@@ -8,7 +8,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 
-std_certificate = "11"
+std_certificate = "1111"
 
 class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
@@ -28,11 +28,13 @@ class RegisterAPI(generics.CreateAPIView):
         # 아이디(핸드폰번호)
         if User.objects.filter(username=username).count() > 0:
             return Response({"message":"username exists"})
+        if len(username) < 10:
+            return Response({"message":"username short"})
         
         # 비번(4자리)
         if password1 != password2:
             return Response({"message":"password not matching"})
-        elif len(password1) != 4:
+        if len(password1) != 4:
             return Response({"message":"password wrong length"})
         
         # 인증번호 없으면
@@ -41,6 +43,8 @@ class RegisterAPI(generics.CreateAPIView):
         # 인증번호 있는데, 일치하지 않으면
         else:
             certificate = request.data['certificate']
+            if len(certificate) == 0:
+                return Response({"message":"no certificate"})   
             if certificate != std_certificate:
                 return Response({"message":"wrong certificate"})
         
@@ -50,7 +54,7 @@ class RegisterAPI(generics.CreateAPIView):
         )
         token = Token.objects.create(user=user)
 
-        return Response({"key": token})
+        return Response({"key": str(token)})
         
 
 # class GroupViewSet(viewsets.ModelViewSet):
